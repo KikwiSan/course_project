@@ -1,0 +1,68 @@
+<<<<<<< HEAD
+syntax = "proto3";
+
+package user_service;
+
+option go_package = "./;user_service";
+
+service UserService {
+  rpc GetUser(Request) returns (Response) {}
+  rpc CreateUser(User) returns (Response) {}
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {}
+}
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string password = 3;
+}
+
+message Request {
+  int32 id = 1;
+}
+
+message Response {
+  User user = 1;
+}
+
+message GetAllUsersRequest {
+
+}
+
+message GetAllUsersResponse {
+  repeated User users = 1;
+=======
+syntax = "proto3";
+
+package user_service;
+
+option go_package = "./;user_service";
+
+service UserService {
+  rpc GetUser(Request) returns (Response) {}
+  rpc CreateUser(User) returns (Response) {}
+  rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {}
+}
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string password = 4;
+}
+
+message Request {
+  int32 id = 1;
+}
+
+message Response {
+  User user = 1;
+}
+
+message GetAllUsersRequest {
+
+}
+
+message GetAllUsersResponse {
+  repeated User users = 1;
+>>>>>>> 9006d60a1538c3867b12bcf075dde1053ad2a85e
+}
