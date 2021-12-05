@@ -1,4 +1,4 @@
-module github.com/KikwiSan/CourseProject/users
+module github.com/KikwiSan/course_project/users
 
 go 1.17
 
