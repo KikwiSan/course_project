@@ -1,50 +1,45 @@
-syntax = "proto3";
+package notes
 
-package notes;
+import (
+	"context"
 
-option go_package = "./;notes";
+	"github.com/KikwiSan/course_project/notes"
+	pb "github.com/KikwiSan/course_project/notes/proto_files"
+)
 
-service NotesService {
-  rpc Create(Note) returns (CreateNoteResponse){}
-
-  rpc Get(GetNoteRequest) returns (GetNoteResponse) {}
-
-  rpc GetNotesByName(GetNotesByNameRequest) returns (GetNotesByNameResponse) {}
-
-  rpc GetAll(GetAllNotesRequest) returns (GetAllNotesResponse) {}
-
+type NoteServer struct {
+	repository notes.Repository
 }
 
-message Note {
-  int64 id = 1;
-  string name = 2;
-  string note_content = 3;
+func (s *NoteServer) Get(ctx context.Context, noteReq *pb.GetNoteRequest) (*pb.GetNoteResponse, error) {
+	temp, _ := s.repository.Get(ctx, noteReq.Id)
+	note := notes.UnconvertingNote(temp)
+	return &pb.GetNoteResponse{
+		Id:           note.GetId(),
+		Name:         note.GetName(),
+		Note_content: note.Note_content,
+	}, nil
 }
 
-message GetNoteRequest {
-  int64 id = 1;
+func (s *NoteServer) Create(ctx context.Context, newReq *pb.Note) (*pb.CreateNoteResponse, error) {
+	_ = s.repository.Create(ctx, notes.ConvertingNote(newReq))
+	return &pb.CreateNoteResponse{
+		Note: newReq,
+	}, nil
 }
 
-message GetNoteResponse {
-  string name = 1;
+func (s *NoteServer) GetAll(ctx context.Context, allReq *pb.GetAllNotesRequest) (*pb.GetAllNotesResponse, error) {
+	notes_, _ := s.repository.GetAll(ctx)
+	notes := notes.UnconvertingAllNotes(notes_)
+	return &pb.GetAllNotesResponse{
+		AllNotes: notes,
+	}, nil
 }
 
-message CreateNoteResponse {
-  Note note = 1;
-}
-
-message GetAllNotesRequest {
-
-}
-
-message GetAllNotesResponse {
-  repeated Note allNotes = 1;
-}
-
-message GetNotesByNameRequest {
-  string name = 1;
-}
-
-message GetNotesByNameResponse {
-  repeated Note notes = 1;
+func (s *NoteServer) GetNotesByName(ctx context.Context, nameReq *pb.GetNotesByNamerRequest) (*pb.GetNotesByNameResponse, error) {
+	notes_, _ := s.repository.GetNotesByName(ctx, nameReq.Name)
+	notes := notes.UnconvertingAllNotes(notes_)
+	return &pb.GetNotesByNameResponse{
+		Notes: notes,
+	}, nil
 }

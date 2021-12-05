@@ -1,4 +1,4 @@
-package notes_collection
+package notes
 
 import (
 	"context"
@@ -8,11 +8,18 @@ import (
 	_ "github.com/lib/pq"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func Connect(ctx context.Context, uri string) (*mongo.Client, error) {
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	return client, err
+}
+
 type Note struct {
-	Id   int64  `sql:"id"`
-	Name string `sql:"name"`
+	Id           int32  `sql:"id"`
+	Name         string `sql:"name"`
+	Note_content string `sql:"note_content"`
 }
 
 type MongoRepository struct {
@@ -20,17 +27,17 @@ type MongoRepository struct {
 }
 
 type Repository interface {
-	CreateNote(ctx context.Context, note *Note) error
-	GetNote(ctx context.Context, id int64) (*Note, error)
+	Create(ctx context.Context, note *Note) error
+	Get(ctx context.Context, id int64) (*Note, error)
 	GetNotesByName(ctx context.Context, name string) ([]*Note, error)
 	GetAllNotes(ctx context.Context) ([]*Note, error)
 }
 
-func (repos *MongoRepository) CreateNote(ctx context.Context, note *Note) {
+func (repos *MongoRepository) Create(ctx context.Context, note *Note) {
 	repos.db.InsertOne(ctx, note)
 }
 
-func (repos *MongoRepository) GetNote(ctx context.Context, id int64) *Note {
+func (repos *MongoRepository) Get(ctx context.Context, id int32) *Note {
 	var note *Note
 	cursor, _ := repos.db.Find(ctx, bson.M{"id": id})
 	cursor.All(ctx, &note)
@@ -51,32 +58,34 @@ func (repos *MongoRepository) GetNotesByName(ctx context.Context, name string) [
 	return notes
 }
 
-func ParsingNote(note *pb.Note) *Note {
+func ConvertingNote(note *pb.Note) *Note {
 	return &Note{
-		Id:   note.Id,
-		Name: note.Name,
+		Id:           note.Id,
+		Name:         note.Name,
+		Note_content: note.Note_content,
 	}
 }
 
-func UnparsingNote(note *Note) *pb.Note {
+func UnconvertingNote(note *Note) *pb.Note {
 	return &pb.Note{
-		Id:   note.Id,
-		Name: note.Name,
+		Id:           note.Id,
+		Name:         note.Name,
+		Note_content: note.Note_content,
 	}
 }
 
-func ParsingAllNotes(notes []*pb.Note) []*Note {
-	result := make([]*Note, len(notes))
+func ConveringAllNotes(notes []*pb.Note) []*Note {
+	temp := make([]*Note, len(notes))
 	for _, val := range notes {
-		result = append(result, ParsingNote(val))
+		temp = append(temp, ConvertingNote(val))
 	}
-	return result
+	return temp
 }
 
-func UnparsingAllNotes(notes []*Note) []*pb.Note {
-	result := make([]*pb.Note, len(notes))
+func UnconvertingAllNotes(notes []*Note) []*pb.Note {
+	temp := make([]*pb.Note, len(notes))
 	for _, val := range notes {
-		result = append(result, UnparsingNote(val))
+		temp = append(temp, UnconvertingNote(val))
 	}
-	return result
+	return temp
 }
